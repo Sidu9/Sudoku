@@ -19,7 +19,7 @@ A web-based Sudoku game with three difficulty levels: Easy, Medium, and Hard. Th
 
 1. Clone this repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Sidu9/Sudoku.git
 cd sudoku-game
 ```
 
@@ -38,12 +38,12 @@ pip install -r requirements.txt
 
 1. Start the Flask server:
 ```bash
-python app.py
+python3 app.py
 ```
 
 2. Open your web browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:8000
 ```
 
 ## How to Play
