@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku - Sign Up</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff5eb;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 48px;
+            color: #1a1a1a;
+            margin-bottom: 40px;
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 40px;
+            border: 2px solid #1a1a1a;
+            padding: 2px;
+        }
+        .grid-cell {
+            background: white;
+            border: 1px solid #1a1a1a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 10px;
+            background-color: #f4b860;
+            color: #1a1a1a;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .button:hover {
+            background-color: #f2a640;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        .message {
+            color: #ff0000;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>SUDOKU</h1>
+        <div class="sudoku-grid">
+            <div class="grid-cell">5</div>
+            <div class="grid-cell">3</div>
+            <div class="grid-cell">7</div>
+            <div class="grid-cell">7</div>
+            <div class="grid-cell">1</div>
+            <div class="grid-cell">2</div>
+            <div class="grid-cell">2</div>
+            <div class="grid-cell">4</div>
+            <div class="grid-cell">4</div>
+        </div>
+        
+        {% if error %}
+        <div class="message">{{ error }}</div>
+        {% endif %}
+        
+        <form method="POST" action="{{ url_for('signup') }}">
+            <div class="form-group">
+                <input type="text" name="username" placeholder="Username" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Password" required>
+            </div>
+            <div class="form-group">
+                <input type="password" name="confirm_password" placeholder="Confirm Password" required>
+            </div>
+            <button type="submit" class="button">Sign Up</button>
+        </form>
+        
+        <a href="{{ url_for('login') }}" class="button">Back to Login</a>
+    </div>
+</body>
+</html> 

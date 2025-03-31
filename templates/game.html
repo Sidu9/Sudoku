@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku - Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #fff5eb;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 48px;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            background-color: #f4b860;
+            color: #1a1a1a;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .button:hover {
+            background-color: #f2a640;
+        }
+        .sudoku-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 1px;
+            padding: 2px;
+            background-color: #1a1a1a;
+            width: 450px;
+            height: 450px;
+            margin: 0 auto 20px;
+        }
+        .cell {
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .cell:nth-child(3n) {
+            border-right: 2px solid #1a1a1a;
+        }
+        .cell:nth-child(9n) {
+            border-right: none;
+        }
+        .row:nth-child(3n) .cell {
+            border-bottom: 2px solid #1a1a1a;
+        }
+        .cell.fixed {
+            color: #1a1a1a;
+            background-color: #f9f9f9;
+        }
+        .cell.selected {
+            background-color: #f4b860;
+        }
+        .cell.error {
+            color: #ff0000;
+        }
+        .number-pad {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 5px;
+            margin: 20px auto;
+            max-width: 300px;
+        }
+        .number-btn {
+            padding: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 5px;
+            background-color: #f4b860;
+            color: #1a1a1a;
+            cursor: pointer;
+        }
+        .number-btn:hover {
+            background-color: #f2a640;
+        }
+        .timer {
+            font-size: 24px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .difficulty-select {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            margin-right: 10px;
+        }
+        .music-control {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        .music-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #f4a460;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transition: all 0.3s ease;
+        }
+        .music-button:hover {
+            transform: scale(1.1);
+            background-color: #e8935c;
+        }
+        .music-button i {
+            font-size: 20px;
+            color: #fff;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <h1>SUDOKU</h1>
+        
+        <div class="controls">
+            <select id="difficulty" class="difficulty-select">
+                <option value="easy">Easy</option>
+                <option value="medium">Medium</option>
+                <option value="hard">Hard</option>
+            </select>
+            <button onclick="newGame()" class="button">New Game</button>
+            <button onclick="checkSolution()" class="button">Check Solution</button>
+            <button onclick="revealSolution()" class="button">Reveal Solution</button>
+            {% if not offline %}
+            <a href="{{ url_for('leaderboard') }}" class="button">Leaderboard</a>
+            <a href="{{ url_for('logout') }}" class="button">Logout</a>
+            {% endif %}
+        </div>
+
+        <div class="timer">Time: 00:00</div>
+        <button id="pauseTimer" class="button">
+            <i class="fas fa-pause" id="pauseIcon"></i> Pause
+        </button>
+        
+        <div class="sudoku-grid" id="grid"></div>
+        
+        <div class="number-pad">
+            <button class="number-btn" onclick="setNumber(1)">1</button>
+            <button class="number-btn" onclick="setNumber(2)">2</button>
+            <button class="number-btn" onclick="setNumber(3)">3</button>
+            <button class="number-btn" onclick="setNumber(4)">4</button>
+            <button class="number-btn" onclick="setNumber(5)">5</button>
+            <button class="number-btn" onclick="setNumber(6)">6</button>
+            <button class="number-btn" onclick="setNumber(7)">7</button>
+            <button class="number-btn" onclick="setNumber(8)">8</button>
+            <button class="number-btn" onclick="setNumber(9)">9</button>
+            <button class="number-btn" onclick="setNumber(0)">Clear</button>
+        </div>
+    </div>
+
+    <div class="music-control">
+        <button id="musicToggle" class="music-button">
+            <i class="fas fa-volume-up" id="musicIcon"></i>
+        </button>
+        <audio id="bgMusic" loop>
+            <source src="{{ url_for('static', filename='audio/concentration.mp3') }}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script>
+        let puzzle = [];
+        let solution = [];
+        let selectedCell = null;
+        let startTime = null;
+        let timerInterval = null;
+        let isGameComplete = false;
+        let isPaused = false;
+        let totalPausedTime = 0;
+        let lastPauseTime = null;
+
+        // Add the pause timer functionality
+        document.getElementById('pauseTimer').addEventListener('click', function() {
+            const pauseButton = document.getElementById('pauseTimer');
+            const pauseIcon = document.getElementById('pauseIcon');
+            const grid = document.getElementById('grid');
+            
+            if (!isPaused) {
+                // Pause the timer
+                isPaused = true;
+                lastPauseTime = Date.now();
+                clearInterval(timerInterval);
+                pauseButton.innerHTML = '<i class="fas fa-play"></i> Resume';
+                
+                // Hide the grid while paused
+                grid.style.filter = 'blur(10px)';
+                grid.style.pointerEvents = 'none';
+            } else {
+                // Resume the timer
+                isPaused = false;
+                totalPausedTime += Date.now() - lastPauseTime;
+                startTimer();
+                pauseButton.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                
+                // Show the grid again
+                grid.style.filter = 'none';
+                grid.style.pointerEvents = 'auto';
+            }
+        });
+
+        function updateTimer() {
+            if (!startTime || isGameComplete) return;
+            
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - startTime - totalPausedTime;
+            const seconds = Math.floor(elapsedTime / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = seconds % 60;
+            
+            document.querySelector('.timer').textContent = 
+                `Time: ${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(updateTimer, 1000);
+        }
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.addEventListener('click', selectCell);
+                grid.appendChild(cell);
+            }
+        }
+
+        function selectCell(event) {
+            if (selectedCell) {
+                selectedCell.classList.remove('selected');
+            }
+            selectedCell = event.target;
+            selectedCell.classList.add('selected');
+        }
+
+        function setNumber(num) {
+            if (!selectedCell || selectedCell.classList.contains('fixed')) return;
+            
+            const index = selectedCell.dataset.index;
+            const row = Math.floor(index / 9);
+            const col = index % 9;
+            
+            puzzle[row][col] = num;
+            selectedCell.textContent = num || '';
+            
+            if (checkCompletion()) {
+                isGameComplete = true;
+                clearInterval(timerInterval);
+                const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
+                
+                if (!offline && confirm('Congratulations! You solved the puzzle! Save your score?')) {
+                    saveScore(elapsedSeconds);
+                }
+            }
+        }
+
+        function checkCompletion() {
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    if (puzzle[i][j] !== solution[i][j]) {
+                        return false;
+                    }
+                }
+            }
+            return true;
+        }
+
+        async function saveScore(time) {
+            const difficulty = document.getElementById('difficulty').value;
+            try {
+                const response = await fetch('/save_score', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        difficulty: difficulty,
+                        time: time
+                    })
+                });
+                
+                if (response.ok) {
+                    alert('Score saved successfully!');
+                } else {
+                    alert('Failed to save score.');
+                }
+            } catch (error) {
+                console.error('Error saving score:', error);
+                alert('Failed to save score.');
+            }
+        }
+
+        function updateGrid() {
+            const cells = document.getElementsByClassName('cell');
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = cells[i * 9 + j];
+                    const value = puzzle[i][j];
+                    cell.textContent = value || '';
+                    cell.classList.remove('fixed');
+                    if (value !== 0) {
+                        cell.classList.add('fixed');
+                    }
+                }
+            }
+        }
+
+        function newGame() {
+            // Reset pause-related variables
+            isPaused = false;
+            totalPausedTime = 0;
+            lastPauseTime = null;
+            document.getElementById('pauseTimer').innerHTML = '<i class="fas fa-pause"></i> Pause';
+            document.getElementById('grid').style.filter = 'none';
+            document.getElementById('grid').style.pointerEvents = 'auto';
+            
+            const difficulty = document.getElementById('difficulty').value;
+            fetch(`/new_game/${difficulty}`)
+                .then(response => response.json())
+                .then(data => {
+                    puzzle = data.puzzle;
+                    solution = data.solution;
+                    createGrid();
+                    startTime = Date.now();
+                    isGameComplete = false;
+                    startTimer();
+                })
+                .catch(error => {
+                    console.error('Error starting new game:', error);
+                    alert('Failed to start new game.');
+                });
+        }
+
+        function checkSolution() {
+            const cells = document.getElementsByClassName('cell');
+            let isCorrect = true;
+            
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = cells[i * 9 + j];
+                    const currentValue = puzzle[i][j];
+                    const correctValue = solution[i][j];
+                    
+                    cell.classList.remove('error');
+                    if (currentValue !== 0 && currentValue !== correctValue) {
+                        cell.classList.add('error');
+                        isCorrect = false;
+                    }
+                }
+            }
+            
+            if (isCorrect) {
+                alert('All filled numbers are correct!');
+            }
+        }
+
+        function revealSolution() {
+            if (confirm('Are you sure you want to reveal the solution? This will end the current game.')) {
+                isGameComplete = true;
+                clearInterval(timerInterval);
+                
+                const cells = document.getElementsByClassName('cell');
+                for (let i = 0; i < 9; i++) {
+                    for (let j = 0; j < 9; j++) {
+                        const cell = cells[i * 9 + j];
+                        const value = solution[i][j];
+                        cell.textContent = value;
+                        cell.classList.add('fixed');
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const musicToggle = document.getElementById('musicToggle');
+            const musicIcon = document.getElementById('musicIcon');
+            const bgMusic = document.getElementById('bgMusic');
+            let isPlaying = false;
+
+            // Set initial volume
+            bgMusic.volume = 0.5;
+
+            musicToggle.addEventListener('click', function() {
+                if (!isPlaying) {
+                    bgMusic.play()
+                        .then(() => {
+                            isPlaying = true;
+                            musicIcon.className = 'fas fa-volume-up';
+                        })
+                        .catch(error => {
+                            console.error('Error playing audio:', error);
+                        });
+                } else {
+                    bgMusic.pause();
+                    isPlaying = false;
+                    musicIcon.className = 'fas fa-volume-mute';
+                }
+            });
+
+            // Handle audio loading errors
+            bgMusic.addEventListener('error', function(e) {
+                console.error('Error loading audio file:', e);
+            });
+        });
+
+        // Initialize the game
+        createGrid();
+        newGame();
+
+        // Handle keyboard input
+        document.addEventListener('keydown', (event) => {
+            if (!selectedCell) return;
+            
+            if (event.key >= '0' && event.key <= '9') {
+                setNumber(parseInt(event.key));
+            }
+        });
+
+        const offline = {% if offline %}true{% else %}false{% endif %};
+    </script>
+</body>
+</html> 
