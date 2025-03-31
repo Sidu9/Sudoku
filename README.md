@@ -61,14 +61,26 @@ http://localhost:8000
 The project structure is organized as follows:
 
 ```
-sudoku-game/
-├── app.py              # Flask backend
-├── requirements.txt    # Python dependencies
-├── static/
+Sudoku/
+├── .git/                      # Git repository data
+├── .gitignore                 # Git ignore rules
+├── README.md                  # Project documentation
+├── app.py                     # Main Flask application
+├── image.png                  # Project image
+├── requirements.txt           # Python dependencies
+├── sudoku.db                  # SQLite database
+├── static/                    # Static files
+│   ├── audio/
+│   │   └── concentration.mp3  # Background music
 │   ├── css/
-│   │   └── style.css  # Styling
+│   │   └── style.css         # Stylesheet
 │   └── js/
-│       └── script.js  # Frontend logic
-└── templates/
-    └── index.html     # Main page
+│       └── script.js         # JavaScript code
+├── templates/                 # HTML templates
+│   ├── game.html             # Game page
+│   ├── index.html            # Home page
+│   ├── leaderboard.html      # Leaderboard page
+│   ├── login.html            # Login page
+│   └── signup.html           # Sign up page
+└── venv/                     # Python virtual environment
 ``` 
