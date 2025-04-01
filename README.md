@@ -19,7 +19,7 @@ A web-based Sudoku game with three difficulty levels: Easy, Medium, and Hard. Th
 
 1. Clone this repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/Sidu9/Sudoku.git
 cd sudoku-game
 ```
 
@@ -38,12 +38,12 @@ pip install -r requirements.txt
 
 1. Start the Flask server:
 ```bash
-python app.py
+python3 app.py
 ```
 
 2. Open your web browser and navigate to:
 ```
-http://localhost:5000
+http://localhost:8000
 ```
 
 ## How to Play
@@ -61,14 +61,26 @@ http://localhost:5000
 The project structure is organized as follows:
 
 ```
-sudoku-game/
-├── app.py              # Flask backend
-├── requirements.txt    # Python dependencies
-├── static/
+Sudoku/
+├── .git/                      # Git repository data
+├── .gitignore                 # Git ignore rules
+├── README.md                  # Project documentation
+├── app.py                     # Main Flask application
+├── image.png                  # Project image
+├── requirements.txt           # Python dependencies
+├── sudoku.db                  # SQLite database
+├── static/                    # Static files
+│   ├── audio/
+│   │   └── concentration.mp3  # Background music
 │   ├── css/
-│   │   └── style.css  # Styling
+│   │   └── style.css         # Stylesheet
 │   └── js/
-│       └── script.js  # Frontend logic
-└── templates/
-    └── index.html     # Main page
+│       └── script.js         # JavaScript code
+├── templates/                 # HTML templates
+│   ├── game.html             # Game page
+│   ├── index.html            # Home page
+│   ├── leaderboard.html      # Leaderboard page
+│   ├── login.html            # Login page
+│   └── signup.html           # Sign up page
+└── venv/                     # Python virtual environment
 ``` 
