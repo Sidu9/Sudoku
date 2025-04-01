@@ -144,7 +144,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body>
-    <div class="container">
+    <div class="container" data-offline="{{ 'true' if offline else 'false' }}">
         <h1>SUDOKU</h1>
         
         <div class="controls">
@@ -194,6 +194,9 @@
     </div>
 
     <script>
+        // Get offline status from data attribute
+        const offline = document.querySelector('.container').dataset.offline === 'true';
+        
         let puzzle = [];
         let solution = [];
         let selectedCell = null;
@@ -255,158 +258,99 @@
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
             
-            for (let i = 0; i < 81; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'cell';
-                cell.dataset.index = i;
-                cell.addEventListener('click', selectCell);
-                grid.appendChild(cell);
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    if (puzzle[i][j] !== 0) {
+                        cell.textContent = puzzle[i][j];
+                        cell.classList.add('fixed');
+                    }
+                    
+                    cell.addEventListener('click', () => {
+                        if (cell.classList.contains('fixed')) return;
+                        if (selectedCell) selectedCell.classList.remove('selected');
+                        selectedCell = cell;
+                        cell.classList.add('selected');
+                    });
+                    
+                    grid.appendChild(cell);
+                }
             }
-        }
-
-        function selectCell(event) {
-            if (selectedCell) {
-                selectedCell.classList.remove('selected');
-            }
-            selectedCell = event.target;
-            selectedCell.classList.add('selected');
         }
 
         function setNumber(num) {
             if (!selectedCell || selectedCell.classList.contains('fixed')) return;
             
-            const index = selectedCell.dataset.index;
+            const index = Array.from(selectedCell.parentNode.children).indexOf(selectedCell);
             const row = Math.floor(index / 9);
             const col = index % 9;
             
-            puzzle[row][col] = num;
-            selectedCell.textContent = num || '';
+            if (num === 0) {
+                selectedCell.textContent = '';
+                puzzle[row][col] = 0;
+            } else {
+                selectedCell.textContent = num;
+                puzzle[row][col] = num;
+            }
             
-            if (checkCompletion()) {
-                isGameComplete = true;
-                clearInterval(timerInterval);
-                const elapsedSeconds = Math.floor((new Date() - startTime) / 1000);
-                
-                if (!offline && confirm('Congratulations! You solved the puzzle! Save your score?')) {
-                    saveScore(elapsedSeconds);
-                }
-            }
-        }
-
-        function checkCompletion() {
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 9; j++) {
-                    if (puzzle[i][j] !== solution[i][j]) {
-                        return false;
-                    }
-                }
-            }
-            return true;
-        }
-
-        async function saveScore(time) {
-            const difficulty = document.getElementById('difficulty').value;
-            try {
-                const response = await fetch('/save_score', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        difficulty: difficulty,
-                        time: time
-                    })
-                });
-                
-                if (response.ok) {
-                    alert('Score saved successfully!');
-                } else {
-                    alert('Failed to save score.');
-                }
-            } catch (error) {
-                console.error('Error saving score:', error);
-                alert('Failed to save score.');
-            }
-        }
-
-        function updateGrid() {
-            const cells = document.getElementsByClassName('cell');
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 9; j++) {
-                    const cell = cells[i * 9 + j];
-                    const value = puzzle[i][j];
-                    cell.textContent = value || '';
-                    cell.classList.remove('fixed');
-                    if (value !== 0) {
-                        cell.classList.add('fixed');
-                    }
-                }
-            }
-        }
-
-        function newGame() {
-            // Reset pause-related variables
-            isPaused = false;
-            totalPausedTime = 0;
-            lastPauseTime = null;
-            document.getElementById('pauseTimer').innerHTML = '<i class="fas fa-pause"></i> Pause';
-            document.getElementById('grid').style.filter = 'none';
-            document.getElementById('grid').style.pointerEvents = 'auto';
-            
-            const difficulty = document.getElementById('difficulty').value;
-            fetch(`/new_game/${difficulty}`)
-                .then(response => response.json())
-                .then(data => {
-                    puzzle = data.puzzle;
-                    solution = data.solution;
-                    createGrid();
-                    startTime = Date.now();
-                    isGameComplete = false;
-                    startTimer();
-                })
-                .catch(error => {
-                    console.error('Error starting new game:', error);
-                    alert('Failed to start new game.');
-                });
+            selectedCell.classList.remove('error');
         }
 
         function checkSolution() {
-            const cells = document.getElementsByClassName('cell');
-            let isCorrect = true;
+            const grid = document.getElementById('grid');
+            const cells = grid.children;
+            let isComplete = true;
             
             for (let i = 0; i < 9; i++) {
                 for (let j = 0; j < 9; j++) {
                     const cell = cells[i * 9 + j];
-                    const currentValue = puzzle[i][j];
-                    const correctValue = solution[i][j];
-                    
-                    cell.classList.remove('error');
-                    if (currentValue !== 0 && currentValue !== correctValue) {
+                    if (puzzle[i][j] !== solution[i][j]) {
                         cell.classList.add('error');
-                        isCorrect = false;
+                        isComplete = false;
+                    } else {
+                        cell.classList.remove('error');
                     }
                 }
             }
             
-            if (isCorrect) {
-                alert('All filled numbers are correct!');
+            if (isComplete && !isGameComplete) {
+                isGameComplete = true;
+                clearInterval(timerInterval);
+                const finalTime = Math.floor((Date.now() - startTime - totalPausedTime) / 1000);
+                alert(`Congratulations! You completed the puzzle in ${Math.floor(finalTime / 60)}:${(finalTime % 60).toString().padStart(2, '0')}`);
+                
+                // Save score if user is logged in
+                if (!offline) {
+                    fetch('/save_score', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            difficulty: document.getElementById('difficulty').value,
+                            time: finalTime
+                        })
+                    });
+                }
             }
         }
 
         function revealSolution() {
-            if (confirm('Are you sure you want to reveal the solution? This will end the current game.')) {
-                isGameComplete = true;
-                clearInterval(timerInterval);
+            if (confirm('Are you sure you want to reveal the solution? This will end the game.')) {
+                const grid = document.getElementById('grid');
+                const cells = grid.children;
                 
-                const cells = document.getElementsByClassName('cell');
                 for (let i = 0; i < 9; i++) {
                     for (let j = 0; j < 9; j++) {
-                        const cell = cells[i * 9 + j];
-                        const value = solution[i][j];
-                        cell.textContent = value;
-                        cell.classList.add('fixed');
+                        puzzle[i][j] = solution[i][j];
+                        cells[i * 9 + j].textContent = solution[i][j];
+                        cells[i * 9 + j].classList.remove('error');
                     }
                 }
+                
+                isGameComplete = true;
+                clearInterval(timerInterval);
             }
         }
 
@@ -442,20 +386,45 @@
             });
         });
 
-        // Initialize the game
-        createGrid();
-        newGame();
-
-        // Handle keyboard input
-        document.addEventListener('keydown', (event) => {
-            if (!selectedCell) return;
-            
-            if (event.key >= '0' && event.key <= '9') {
-                setNumber(parseInt(event.key));
+        // Add keyboard support
+        document.addEventListener('keydown', (e) => {
+            if (selectedCell && !selectedCell.classList.contains('fixed')) {
+                if (e.key >= '1' && e.key <= '9') {
+                    setNumber(parseInt(e.key));
+                } else if (e.key === '0' || e.key === 'Backspace' || e.key === 'Delete') {
+                    setNumber(0);
+                }
             }
         });
 
-        const offline = {% if offline %}true{% else %}false{% endif %};
+        function newGame() {
+            // Reset pause-related variables
+            isPaused = false;
+            totalPausedTime = 0;
+            lastPauseTime = null;
+            document.getElementById('pauseTimer').innerHTML = '<i class="fas fa-pause"></i> Pause';
+            document.getElementById('grid').style.filter = 'none';
+            document.getElementById('grid').style.pointerEvents = 'auto';
+            
+            const difficulty = document.getElementById('difficulty').value;
+            fetch(`/generate/${difficulty}`)
+                .then(response => response.json())
+                .then(data => {
+                    puzzle = data.puzzle;
+                    solution = data.solution;
+                    createGrid();
+                    startTime = Date.now();
+                    isGameComplete = false;
+                    startTimer();
+                })
+                .catch(error => {
+                    console.error('Error starting new game:', error);
+                    alert('Failed to start new game.');
+                });
+        }
+
+        // Initialize the game
+        newGame();
     </script>
 </body>
 </html> 
