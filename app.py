@@ -244,6 +244,52 @@ def game():
 def play_offline():
     return render_template('game.html', offline=True)
 
+@app.route('/boss_fight')
+def boss_fight():
+    """Route for the boss fight game mode."""
+    puzzle_data = generate_puzzle('medium')  # Boss fights use medium difficulty
+    return render_template('boss_fight.html', board=puzzle_data['puzzle'])
+
+@app.route('/generate_boss_puzzle')
+def generate_boss_puzzle():
+    """Generate a new puzzle for boss fight mode."""
+    puzzle_data = generate_puzzle('medium')
+    return jsonify(puzzle_data)
+
+@app.route('/save_boss_victory', methods=['POST'])
+def save_boss_victory():
+    """Save the victory against a boss."""
+    if 'user_id' not in session:
+        return {'error': 'Not logged in'}, 401
+    
+    data = request.get_json()
+    time = data.get('time')  # Time in seconds
+    boss_name = data.get('boss_name')
+    
+    if not all([time, boss_name]):
+        return {'error': 'Invalid data'}, 400
+    
+    conn = sqlite3.connect('sudoku.db')
+    c = conn.cursor()
+    
+    # Add boss_victories table if it doesn't exist
+    c.execute('''CREATE TABLE IF NOT EXISTS boss_victories
+                 (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                  user_id INTEGER,
+                  boss_name TEXT,
+                  time INTEGER,
+                  date REAL,
+                  FOREIGN KEY (user_id) REFERENCES users (id))''')
+    
+    c.execute('''INSERT INTO boss_victories (user_id, boss_name, time, date)
+                 VALUES (?, ?, ?, ?)''',
+              (session['user_id'], boss_name, time, datetime.now().timestamp()))
+    
+    conn.commit()
+    conn.close()
+    
+    return {'success': True}
+
 def init_db():
     conn = sqlite3.connect('sudoku.db')
     c = conn.cursor()
