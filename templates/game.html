@@ -156,6 +156,9 @@
             <button onclick="newGame()" class="button">New Game</button>
             <button onclick="checkSolution()" class="button">Check Solution</button>
             <button onclick="revealSolution()" class="button">Reveal Solution</button>
+            <button onclick="undo()" class="button">Undo</button>
+            <button onclick="redo()" class="button">Redo</button>
+            <button onclick="getHint()" class="button">Get Hint</button>
             {% if not offline %}
             <a href="{{ url_for('leaderboard') }}" class="button">Leaderboard</a>
             <a href="{{ url_for('logout') }}" class="button">Logout</a>
@@ -206,6 +209,8 @@
         let isPaused = false;
         let totalPausedTime = 0;
         let lastPauseTime = null;
+        let moveHistory = [];
+        let redoStack = [];
 
         // Add the pause timer functionality
         document.getElementById('pauseTimer').addEventListener('click', function() {
@@ -285,6 +290,17 @@
             const index = Array.from(selectedCell.parentNode.children).indexOf(selectedCell);
             const row = Math.floor(index / 9);
             const col = index % 9;
+            
+            // Save the current state for undo
+            moveHistory.push({
+                row: row,
+                col: col,
+                value: num,
+                previousValue: puzzle[row][col]
+            });
+            
+            // Clear redo stack when making a new move
+            redoStack = [];
             
             if (num === 0) {
                 selectedCell.textContent = '';
@@ -421,6 +437,82 @@
                     console.error('Error starting new game:', error);
                     alert('Failed to start new game.');
                 });
+        }
+
+        // Add undo functionality
+        function undo() {
+            if (moveHistory.length === 0) return;
+            
+            const lastMove = moveHistory.pop();
+            const cell = document.getElementById('grid').children[lastMove.row * 9 + lastMove.col];
+            
+            // Save the current value for redo
+            redoStack.push({
+                row: lastMove.row,
+                col: lastMove.col,
+                value: puzzle[lastMove.row][lastMove.col],
+                previousValue: lastMove.previousValue
+            });
+            
+            // Restore the previous value
+            puzzle[lastMove.row][lastMove.col] = lastMove.previousValue;
+            cell.textContent = lastMove.previousValue || '';
+            cell.classList.remove('error');
+        }
+
+        // Add redo functionality
+        function redo() {
+            if (redoStack.length === 0) return;
+            
+            const nextMove = redoStack.pop();
+            const cell = document.getElementById('grid').children[nextMove.row * 9 + nextMove.col];
+            
+            // Save the current state for undo
+            moveHistory.push({
+                row: nextMove.row,
+                col: nextMove.col,
+                value: nextMove.value,
+                previousValue: puzzle[nextMove.row][nextMove.col]
+            });
+            
+            // Apply the redo value
+            puzzle[nextMove.row][nextMove.col] = nextMove.value;
+            cell.textContent = nextMove.value || '';
+            cell.classList.remove('error');
+        }
+
+        // Add hint functionality
+        function getHint() {
+            // Find empty cells
+            let emptyCells = [];
+            for (let i = 0; i < 9; i++) {
+                for (let j = 0; j < 9; j++) {
+                    if (puzzle[i][j] === 0) {
+                        emptyCells.push({row: i, col: j});
+                    }
+                }
+            }
+            
+            if (emptyCells.length === 0) return;
+            
+            // Randomly select an empty cell
+            const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            const cell = document.getElementById('grid').children[randomCell.row * 9 + randomCell.col];
+            
+            // Save the current state for undo
+            moveHistory.push({
+                row: randomCell.row,
+                col: randomCell.col,
+                value: solution[randomCell.row][randomCell.col],
+                previousValue: puzzle[randomCell.row][randomCell.col]
+            });
+            
+            // Clear redo stack when making a new move
+            redoStack = [];
+            
+            // Fill in the correct value
+            puzzle[randomCell.row][randomCell.col] = solution[randomCell.row][randomCell.col];
+            cell.textContent = solution[randomCell.row][randomCell.col];
         }
 
         // Initialize the game

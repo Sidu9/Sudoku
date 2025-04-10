@@ -35,20 +35,26 @@ def is_valid(board, row, col, num):
     
     return True
 
-def solve_sudoku(board):
+def solve_sudoku_with_random(board):
     empty = find_empty(board)
     if not empty:
         return True
     
     row, col = empty
-    for num in range(1, 10):
+    nums = list(range(1, 10))
+    random.shuffle(nums)  # Try numbers in random order
+    
+    for num in nums:
         if is_valid(board, row, col, num):
             board[row][col] = num
-            if solve_sudoku(board):
+            if solve_sudoku_with_random(board):
                 return True
             board[row][col] = 0
     
     return False
+
+def solve_sudoku(board):
+    return solve_sudoku_with_random(board)  # Use the randomized version
 
 def find_empty(board):
     for i in range(9):
@@ -59,8 +65,21 @@ def find_empty(board):
 
 def generate_solved_board():
     board = create_empty_board()
-    solve_sudoku(board)
-    return board
+    
+    # Add random initial numbers to create different patterns
+    nums = list(range(1, 10))
+    random.shuffle(nums)
+    
+    # Place some random numbers to start with
+    for i in range(3):
+        row = random.randint(0, 8)
+        col = random.randint(0, 8)
+        if board[row][col] == 0 and is_valid(board, row, col, nums[i]):
+            board[row][col] = nums[i]
+    
+    if solve_sudoku_with_random(board):
+        return board
+    return generate_solved_board()  # In case the board is unsolvable, try again
 
 def generate_puzzle(difficulty):
     # Generate a solved board
