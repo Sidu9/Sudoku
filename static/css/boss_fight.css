@@ -1,0 +1,333 @@
+.boss-fight-mode {
+    background-color: #1a1a1a;
+    color: #ffffff;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.boss-container {
+    max-width: 800px;
+    width: 100%;
+    padding: 20px;
+}
+
+.boss-title {
+    color: #ffa500;
+    text-align: center;
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.boss-info {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.boss-avatar {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    background-color: #2a2a2a;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid #ffa500;
+}
+
+.boss-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.boss-name {
+    color: #ffffff;
+    font-size: 2rem;
+    margin-top: 10px;
+    background-color: #2a2a2a;
+    padding: 10px 20px;
+    display: inline-block;
+    border-radius: 5px;
+}
+
+.game-timer {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 20px;
+    color: #ffa500;
+}
+
+.sudoku-grid {
+    display: grid;
+    grid-template-rows: repeat(9, 1fr);
+    gap: 1px;
+    background-color: #333;
+    padding: 2px;
+    margin: 0 auto;
+    max-width: 500px;
+}
+
+.sudoku-row {
+    display: grid;
+    grid-template-columns: repeat(9, 1fr);
+    gap: 1px;
+}
+
+.cell {
+    width: 100%;
+    aspect-ratio: 1;
+    background-color: #2a2a2a;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+    font-weight: normal;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    padding: 0;
+}
+
+.cell:hover {
+    background-color: #3a3a3a;
+}
+
+.cell:focus {
+    outline: 2px solid #ffa500;
+    background-color: #3a3a3a;
+    color: #ffffff;
+}
+
+.cell.fixed {
+    background-color: #3a3a3a;
+    color: #ffa500;
+    cursor: not-allowed;
+    font-weight: bold;
+}
+
+.cell.hidden {
+    color: transparent;
+    background-color: #1a1a1a;
+}
+
+.cell.locked {
+    border: 2px solid #ffa500;
+}
+
+.cell.error {
+    background-color: #ff6b6b;
+    animation: shake 0.5s;
+}
+
+/* Remove arrow from dropdown */
+.cell::-ms-expand {
+    display: none;
+}
+
+/* Style the options */
+.cell option {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    font-size: 1.2rem;
+}
+
+.cell option:checked {
+    background-color: #3a3a3a;
+    color: #ffa500;
+}
+
+.ability-container {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+    padding: 10px;
+    background-color: #2a2a2a;
+    border-radius: 10px;
+    gap: 10px;
+}
+
+.ability {
+    position: relative;
+}
+
+.ability-btn {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    border: none;
+    background-color: #3a3a3a;
+    color: #ffa500;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.ability-btn:hover {
+    background-color: #4a4a4a;
+    transform: scale(1.1);
+}
+
+.ability-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ability-count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ffa500;
+    color: #1a1a1a;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.control-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background-color: #3a3a3a;
+    color: #ffa500;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.control-btn:hover {
+    background-color: #4a4a4a;
+    transform: scale(1.1);
+}
+
+.control-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.music-control {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.music-button {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #3a3a3a;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    transition: all 0.3s ease;
+    color: #ffa500;
+}
+
+.music-button:hover {
+    transform: scale(1.1);
+    background-color: #4a4a4a;
+}
+
+/* Remove number pad styles */
+.number-pad {
+    display: none;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.boss-power-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s;
+    z-index: 1000;
+}
+
+.boss-power-overlay.active {
+    opacity: 1;
+    animation: pulseOverlay 2s;
+}
+
+.boss-power-message {
+    color: #ffa500;
+    font-size: 2.5rem;
+    text-align: center;
+    text-shadow: 0 0 10px #ffa500;
+    animation: fadeInOut 2s;
+}
+
+.sudoku-grid.power-active {
+    position: relative;
+    animation: gridShake 0.5s;
+}
+
+.sudoku-grid.power-active::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border: 2px solid #ffa500;
+    animation: borderPulse 2s infinite;
+    pointer-events: none;
+}
+
+@keyframes pulseOverlay {
+    0% { background: rgba(0, 0, 0, 0.7); }
+    50% { background: rgba(0, 0, 0, 0.9); }
+    100% { background: rgba(0, 0, 0, 0.7); }
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; transform: scale(0.8); }
+    50% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(0.8); }
+}
+
+@keyframes gridShake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+@keyframes borderPulse {
+    0% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(255, 165, 0, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(255, 165, 0, 0); }
+} 

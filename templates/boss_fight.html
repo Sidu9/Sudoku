@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sudoku Boss Fight - The Shadow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/boss_fight.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="boss-fight-mode">
+    <div class="boss-container">
+        <h1 class="boss-title">BOSS FIGHT</h1>
+        <div class="boss-info">
+            <div class="boss-avatar">
+                <img src="{{ url_for('static', filename='images/shadow_boss.svg') }}" alt="The Shadow">
+            </div>
+            <h2 class="boss-name">THE SHADOW</h2>
+        </div>
+        
+        <div class="game-controls">
+            <button onclick="checkSolution()" class="control-btn" title="Check your current solution">
+                <i class="fas fa-check"></i>
+            </button>
+            <button onclick="getHint()" class="control-btn" title="Get a hint">
+                <i class="fas fa-lightbulb"></i>
+            </button>
+            <button onclick="revealSolution()" class="control-btn" title="Reveal Solution">
+                <i class="fas fa-eye-slash"></i>
+            </button>
+            <button onclick="undo()" class="control-btn" title="Undo">
+                <i class="fas fa-undo"></i>
+            </button>
+            <button onclick="redo()" class="control-btn" title="Redo">
+                <i class="fas fa-redo"></i>
+            </button>
+            <button id="pauseTimer" class="control-btn" title="Pause/Resume">
+                <i class="fas fa-pause" id="pauseIcon"></i>
+            </button>
+            <a href="{{ url_for('login') }}" class="control-btn" title="Exit">
+                <i class="fas fa-door-open"></i>
+            </a>
+        </div>
+
+        <div class="game-timer">
+            <span id="minutes">0</span>:<span id="seconds">00</span>
+        </div>
+
+        <div class="boss-power-overlay">
+            <div class="boss-power-message">
+                The Shadow strikes!
+            </div>
+        </div>
+
+        <div class="sudoku-grid">
+            {% for i in range(9) %}
+            <div class="sudoku-row">
+                {% for j in range(9) %}
+                <select class="cell {% if board[i][j] != 0 %}fixed{% endif %}"
+                        data-row="{{ i }}"
+                        data-col="{{ j }}"
+                        data-cell-id="cell-{{ i }}-{{ j }}"
+                        {% if board[i][j] != 0 %}disabled{% endif %}>
+                    <option value=""></option>
+                    {% for num in range(1, 10) %}
+                    <option value="{{ num }}" {% if board[i][j] == num %}selected{% endif %}>{{ num }}</option>
+                    {% endfor %}
+                </select>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="ability-container">
+            <div class="ability" id="lock-cell">
+                <button class="ability-btn" onclick="useAbility('lock')" title="Lock Cell">
+                    <i class="fas fa-lock"></i>
+                    <span class="ability-count">2</span>
+                </button>
+            </div>
+            <div class="ability" id="truth-vision">
+                <button class="ability-btn" onclick="useAbility('truth')" title="Truth Vision">
+                    <i class="fas fa-eye"></i>
+                    <span class="ability-count">2</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="music-control">
+        <button id="musicToggle" class="music-button">
+            <i class="fas fa-volume-up" id="musicIcon"></i>
+        </button>
+        <audio id="bgMusic" loop>
+            <source src="{{ url_for('static', filename='audio/concentration.mp3') }}" type="audio/mp3">
+            Your browser does not support the audio element.
+        </audio>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/boss_fight.js') }}"></script>
+</body>
+</html> 

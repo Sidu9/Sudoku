@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+    <!-- Dark background circle -->
+    <circle cx="100" cy="100" r="95" fill="#1a1a1a"/>
+    
+    <!-- Hood shape -->
+    <path d="M 50,80 
+             C 50,40 150,40 150,80
+             L 150,140
+             C 150,180 50,180 50,140
+             Z" 
+          fill="#2a2a2a"/>
+    
+    <!-- Face shadow -->
+    <path d="M 70,90
+             C 70,70 130,70 130,90
+             C 130,120 70,120 70,90
+             Z"
+          fill="#1a1a1a"/>
+    
+    <!-- Eyes -->
+    <circle cx="85" cy="95" r="5" fill="#ffa500"/>
+    <circle cx="115" cy="95" r="5" fill="#ffa500"/>
+    
+    <!-- Sinister smile -->
+    <path d="M 80,110
+             C 90,120 110,120 120,110
+             C 110,125 90,125 80,110"
+          fill="#ffa500"/>
+</svg> 
