@@ -31,8 +31,9 @@ class ShadowBoss {
                 const col = parseInt(cell.dataset.col);
                 const value = data.puzzle[row][col];
                 if (value !== 0) {
-                    cell.value = value;
+                    cell.textContent = value;
                     cell.classList.add('fixed');
+                    cell.dataset.originalValue = value;
                 }
             });
         } catch (error) {
@@ -53,18 +54,16 @@ class ShadowBoss {
         cells.forEach(cell => {
             // Store original value for fixed cells
             if (cell.classList.contains('fixed')) {
-                cell.dataset.originalValue = cell.value;
+                cell.dataset.originalValue = cell.textContent;
             }
 
-            // Handle select change
-            cell.addEventListener('change', (e) => {
-                const value = e.target.value;
-                this.handleNumberInput(cell, value);
-            });
-
-            // Make cell clickable
+            // Make cell clickable and selectable
             cell.addEventListener('click', () => {
                 if (!cell.classList.contains('fixed')) {
+                    // Remove selected class from all cells
+                    document.querySelectorAll('.cell.selected').forEach(c => c.classList.remove('selected'));
+                    // Add selected class to this cell
+                    cell.classList.add('selected');
                     cell.focus();
                 }
             });
@@ -74,6 +73,15 @@ class ShadowBoss {
                 const row = cell.dataset.row;
                 const col = cell.dataset.col;
                 cell.dataset.cellId = `cell-${row}-${col}`;
+            }
+        });
+
+        // Add keyboard number input support
+        document.addEventListener('keydown', (e) => {
+            if (e.key >= '1' && e.key <= '9') {
+                this.setNumber(parseInt(e.key));
+            } else if (e.key === '0' || e.key === 'Backspace' || e.key === 'Delete') {
+                this.setNumber(0);
             }
         });
 
@@ -116,15 +124,12 @@ class ShadowBoss {
 
     updateFilledCellsCount() {
         this.filledCellsCount = Array.from(document.querySelectorAll('.cell'))
-            .filter(cell => cell.value && !cell.classList.contains('fixed')).length;
+            .filter(cell => cell.textContent && !cell.classList.contains('fixed')).length;
     }
 
     useShadowPower() {
         // Show the visual effect
         this.showPowerEffect();
-
-        // Calculate number of cells to hide based on filled cells
-        const maxHiddenCells = Math.min(5, Math.floor(this.filledCellsCount / 10) + 1);
         
         // Clear previously hidden cells
         this.hiddenCells.forEach(cellId => {
@@ -133,18 +138,39 @@ class ShadowBoss {
         });
         this.hiddenCells.clear();
 
-        // Get all filled cells that aren't locked
-        const filledCells = Array.from(document.querySelectorAll('.cell'))
+        // Get only user-filled cells (cells with content that are not fixed and not locked)
+        const userFilledCells = Array.from(document.querySelectorAll('.cell'))
             .filter(cell => 
-                cell.value && 
+                cell.textContent && 
                 !cell.classList.contains('fixed') && 
                 !this.lockedCells.has(cell.dataset.cellId)
             );
+            
+        // If no user-filled cells, don't do anything
+        if (userFilledCells.length === 0) return;
 
-        // Randomly select cells to hide
-        for (let i = 0; i < maxHiddenCells && filledCells.length > 0; i++) {
-            const randomIndex = Math.floor(Math.random() * filledCells.length);
-            const cell = filledCells.splice(randomIndex, 1)[0];
+        // Calculate total number of user-fillable cells (non-fixed cells)
+        const totalNonFixedCells = document.querySelectorAll('.cell:not(.fixed)').length;
+        
+        // Calculate progress percentage based on user-filled cells
+        const progressPercentage = userFilledCells.length / totalNonFixedCells;
+        
+        // Calculate number of cells to hide based on progress
+        // 1-10 filled cells = 1 cell hidden
+        // 11-20 filled cells = 2 cells hidden
+        // 21-30 filled cells = 3 cells hidden
+        // 31+ filled cells = 4 cells hidden
+        const cellsToHide = Math.min(4, Math.max(1, Math.ceil(userFilledCells.length / 10)));
+        
+        console.log(`User filled cells: ${userFilledCells.length}, Progress: ${(progressPercentage * 100).toFixed(1)}%, Hiding ${cellsToHide} cells`);
+        
+        // Randomly select cells to hide from user-filled cells only
+        const maxCellsToHide = Math.min(cellsToHide, userFilledCells.length);
+        const cellsToHideArray = [...userFilledCells];
+        
+        for (let i = 0; i < maxCellsToHide; i++) {
+            const randomIndex = Math.floor(Math.random() * cellsToHideArray.length);
+            const cell = cellsToHideArray.splice(randomIndex, 1)[0];
             cell.classList.add('hidden');
             this.hiddenCells.add(cell.dataset.cellId);
         }
@@ -178,55 +204,48 @@ class ShadowBoss {
         }, 2000);
     }
 
-    handleNumberInput(cell, value) {
-        // Don't modify fixed or hidden cells
-        if (cell.classList.contains('fixed') || cell.classList.contains('hidden')) {
-            cell.value = cell.dataset.originalValue || '';
-            return;
-        }
-
-        const row = parseInt(cell.dataset.row);
-        const col = parseInt(cell.dataset.col);
-        const oldValue = cell.value;
-
-        // Only proceed if the value is actually changing
-        if (oldValue === value) {
-            return;
-        }
-
+    setNumber(num) {
+        const selectedCell = document.querySelector('.cell.selected');
+        if (!selectedCell || selectedCell.classList.contains('fixed') || 
+            selectedCell.classList.contains('hidden')) return;
+        
+        const row = parseInt(selectedCell.dataset.row);
+        const col = parseInt(selectedCell.dataset.col);
+        const oldValue = selectedCell.textContent ? parseInt(selectedCell.textContent) : '';
+        
         // Add to move history
         this.moveHistory.push({
             row: row,
             col: col,
-            oldValue: oldValue,
-            newValue: value
+            value: num === 0 ? '' : num,
+            previousValue: oldValue
         });
-        this.redoStack = []; // Clear redo stack when new move is made
-
-        // Update filled cells count
-        if (value && !oldValue) {
-            this.filledCellsCount++;
-        } else if (!value && oldValue) {
-            this.filledCellsCount--;
-        }
-
-        // Validate the move if a number was entered
-        if (value) {
-            const isValid = this.isValidMove(row, col, value);
-            cell.classList.toggle('error', !isValid);
-            
-            if (!isValid) {
-                cell.classList.add('shake');
-                setTimeout(() => cell.classList.remove('shake'), 500);
-            }
+        
+        // Clear redo stack when making a new move
+        this.redoStack = [];
+        
+        // Set the new value
+        if (num === 0) {
+            selectedCell.textContent = '';
         } else {
-            cell.classList.remove('error', 'shake');
+            selectedCell.textContent = num;
         }
+        
+        // Remove error class
+        selectedCell.classList.remove('error');
+        
+        // Check if the move is valid
+        if (num !== 0 && !this.isValidMove(row, col, num)) {
+            selectedCell.classList.add('error');
+        }
+        
+        this.updateFilledCellsCount();
+        this.checkWin();
+    }
 
-        // Check if puzzle is complete
-        if (this.filledCellsCount === 81) {
-            this.checkSolution();
-        }
+    handleNumberInput(cell, value) {
+        // This method is now unused since we're using div elements instead of selects
+        // All handling is done in setNumber
     }
 
     isValidMove(row, col, value) {
@@ -238,27 +257,31 @@ class ShadowBoss {
     isValidInRow(row, value) {
         const cells = document.querySelectorAll(`[data-row="${row}"]`);
         return !Array.from(cells).some(cell => 
-            cell.value === value && !cell.classList.contains('hidden')
+            cell.textContent === value.toString() && !cell.classList.contains('hidden') && cell !== document.querySelector('.cell.selected')
         );
     }
 
     isValidInColumn(col, value) {
         const cells = document.querySelectorAll(`[data-col="${col}"]`);
         return !Array.from(cells).some(cell => 
-            cell.value === value && !cell.classList.contains('hidden')
+            cell.textContent === value.toString() && !cell.classList.contains('hidden') && cell !== document.querySelector('.cell.selected')
         );
     }
 
     isValidInBox(row, col, value) {
         const boxRow = Math.floor(row / 3) * 3;
         const boxCol = Math.floor(col / 3) * 3;
+        const selectedCell = document.querySelector('.cell.selected');
         
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 const cell = document.querySelector(
                     `[data-row="${boxRow + i}"][data-col="${boxCol + j}"]`
                 );
-                if (cell && cell.value === value && !cell.classList.contains('hidden')) {
+                if (cell && 
+                    cell.textContent === value.toString() && 
+                    !cell.classList.contains('hidden') && 
+                    cell !== selectedCell) {
                     return false;
                 }
             }
@@ -268,7 +291,14 @@ class ShadowBoss {
 
     checkWin() {
         const cells = document.querySelectorAll('.cell');
-        return Array.from(cells).every(cell => cell.value && this.isValidMove(cell.dataset.row, cell.dataset.col, cell.value));
+        return Array.from(cells).every(cell => 
+            cell.textContent && 
+            this.isValidMove(
+                parseInt(cell.dataset.row), 
+                parseInt(cell.dataset.col), 
+                parseInt(cell.textContent)
+            )
+        );
     }
 
     handleWin() {
@@ -304,7 +334,7 @@ class ShadowBoss {
 
         const lastMove = this.moveHistory.pop();
         const cell = document.querySelector(`[data-row="${lastMove.row}"][data-col="${lastMove.col}"]`);
-        cell.value = lastMove.oldValue;
+        cell.textContent = lastMove.previousValue || '';
         this.redoStack.push(lastMove);
         this.updateFilledCellsCount();
     }
@@ -314,7 +344,7 @@ class ShadowBoss {
 
         const nextMove = this.redoStack.pop();
         const cell = document.querySelector(`[data-row="${nextMove.row}"][data-col="${nextMove.col}"]`);
-        cell.value = nextMove.newValue;
+        cell.textContent = nextMove.value || '';
         this.moveHistory.push(nextMove);
         this.updateFilledCellsCount();
     }
@@ -325,9 +355,9 @@ class ShadowBoss {
         let isCorrect = true;
 
         cells.forEach(cell => {
-            if (!cell.value) {
+            if (!cell.textContent) {
                 isComplete = false;
-            } else if (this.solution && cell.value !== this.solution[cell.dataset.row][cell.dataset.col].toString()) {
+            } else if (this.solution && parseInt(cell.textContent) !== this.solution[parseInt(cell.dataset.row)][parseInt(cell.dataset.col)]) {
                 isCorrect = false;
                 cell.classList.add('error');
                 setTimeout(() => cell.classList.remove('error'), 1000);
@@ -346,25 +376,40 @@ class ShadowBoss {
     getHint() {
         if (!this.solution) return;
 
-        const emptyCells = Array.from(document.querySelectorAll('.cell:not(.fixed)'))
-            .filter(cell => !cell.value);
+        // Get only empty cells that aren't fixed or hidden
+        const emptyCells = Array.from(document.querySelectorAll('.cell'))
+            .filter(cell => 
+                !cell.textContent && 
+                !cell.classList.contains('fixed') && 
+                !cell.classList.contains('hidden') &&
+                !this.lockedCells.has(cell.dataset.cellId)
+            );
 
         if (emptyCells.length === 0) return;
 
+        // Randomly select an empty cell
         const randomCell = emptyCells[Math.floor(Math.random() * emptyCells.length)];
         const row = parseInt(randomCell.dataset.row);
         const col = parseInt(randomCell.dataset.col);
-        const correctValue = this.solution[row][col].toString();
+        const correctValue = this.solution[row][col];
 
-        randomCell.value = correctValue;
-        randomCell.dataset.lastValue = correctValue;
+        // Save the move to history
         this.moveHistory.push({
             row: row,
             col: col,
-            oldValue: '',
-            newValue: correctValue
+            value: correctValue,
+            previousValue: ''
         });
+
+        // Clear redo stack when using hint
+        this.redoStack = [];
+
+        // Set the value and update the cell
+        randomCell.textContent = correctValue;
         this.updateFilledCellsCount();
+        
+        // Log for debugging
+        console.log(`Hint given: Row ${row}, Col ${col}, Value ${correctValue}`);
     }
 
     revealSolution() {
@@ -378,7 +423,7 @@ class ShadowBoss {
         cells.forEach(cell => {
             const row = parseInt(cell.dataset.row);
             const col = parseInt(cell.dataset.col);
-            cell.value = this.solution[row][col];
+            cell.textContent = this.solution[row][col];
             cell.classList.add('fixed');
         });
 
@@ -439,6 +484,11 @@ function redo() {
 // Add the reveal solution function
 function revealSolution() {
     window.game.revealSolution();
+}
+
+// Add global setNumber function
+function setNumber(num) {
+    window.game.setNumber(num);
 }
 
 // Initialize the game when the page loads

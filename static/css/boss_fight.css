@@ -86,17 +86,17 @@
     transition: all 0.3s;
     cursor: pointer;
     font-weight: normal;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
     padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .cell:hover {
     background-color: #3a3a3a;
 }
 
-.cell:focus {
+.cell:focus, .cell.selected {
     outline: 2px solid #ffa500;
     background-color: #3a3a3a;
     color: #ffffff;
@@ -123,6 +123,7 @@
     animation: shake 0.5s;
 }
 
+/* Remove these since we're not using select anymore */
 /* Remove arrow from dropdown */
 .cell::-ms-expand {
     display: none;
@@ -138,6 +139,36 @@
 .cell option:checked {
     background-color: #3a3a3a;
     color: #ffa500;
+}
+
+/* Add number pad styling */
+.number-pad {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+    max-width: 500px;
+    margin: 20px auto;
+}
+
+.number-btn {
+    padding: 15px;
+    background-color: #3a3a3a;
+    border: none;
+    color: #ffffff;
+    font-size: 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.number-btn:hover {
+    background-color: #4a4a4a;
+    transform: scale(1.05);
+}
+
+.number-btn:active {
+    background-color: #ffa500;
+    color: #1a1a1a;
 }
 
 .ability-container {
@@ -249,11 +280,6 @@
 .music-button:hover {
     transform: scale(1.1);
     background-color: #4a4a4a;
-}
-
-/* Remove number pad styles */
-.number-pad {
-    display: none;
 }
 
 @keyframes shake {

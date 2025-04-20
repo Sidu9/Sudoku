@@ -56,19 +56,29 @@
             {% for i in range(9) %}
             <div class="sudoku-row">
                 {% for j in range(9) %}
-                <select class="cell {% if board[i][j] != 0 %}fixed{% endif %}"
-                        data-row="{{ i }}"
-                        data-col="{{ j }}"
-                        data-cell-id="cell-{{ i }}-{{ j }}"
-                        {% if board[i][j] != 0 %}disabled{% endif %}>
-                    <option value=""></option>
-                    {% for num in range(1, 10) %}
-                    <option value="{{ num }}" {% if board[i][j] == num %}selected{% endif %}>{{ num }}</option>
-                    {% endfor %}
-                </select>
+                <div class="cell {% if board[i][j] != 0 %}fixed{% endif %}"
+                     data-row="{{ i }}"
+                     data-col="{{ j }}"
+                     data-cell-id="cell-{{ i }}-{{ j }}"
+                     tabindex="0">
+                    {% if board[i][j] != 0 %}{{ board[i][j] }}{% endif %}
+                </div>
                 {% endfor %}
             </div>
             {% endfor %}
+        </div>
+
+        <div class="number-pad">
+            <button class="number-btn" onclick="setNumber(1)">1</button>
+            <button class="number-btn" onclick="setNumber(2)">2</button>
+            <button class="number-btn" onclick="setNumber(3)">3</button>
+            <button class="number-btn" onclick="setNumber(4)">4</button>
+            <button class="number-btn" onclick="setNumber(5)">5</button>
+            <button class="number-btn" onclick="setNumber(6)">6</button>
+            <button class="number-btn" onclick="setNumber(7)">7</button>
+            <button class="number-btn" onclick="setNumber(8)">8</button>
+            <button class="number-btn" onclick="setNumber(9)">9</button>
+            <button class="number-btn" onclick="setNumber(0)">Clear</button>
         </div>
 
         <div class="ability-container">
