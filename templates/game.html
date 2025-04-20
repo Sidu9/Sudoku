@@ -188,7 +188,7 @@
 
     <div class="music-control">
         <button id="musicToggle" class="music-button">
-            <i class="fas fa-volume-up" id="musicIcon"></i>
+            <i class="fas fa-volume-mute" id="musicIcon"></i>
         </button>
         <audio id="bgMusic" loop>
             <source src="{{ url_for('static', filename='audio/concentration.mp3') }}" type="audio/mp3">
@@ -317,6 +317,7 @@
             const grid = document.getElementById('grid');
             const cells = grid.children;
             let isComplete = true;
+            let hasErrors = false;
             
             for (let i = 0; i < 9; i++) {
                 for (let j = 0; j < 9; j++) {
@@ -324,10 +325,20 @@
                     if (puzzle[i][j] !== solution[i][j]) {
                         cell.classList.add('error');
                         isComplete = false;
+                        hasErrors = true;
                     } else {
                         cell.classList.remove('error');
                     }
                 }
+            }
+            
+            // Set a timeout to remove error highlights after 5 seconds
+            if (hasErrors) {
+                setTimeout(() => {
+                    for (let i = 0; i < cells.length; i++) {
+                        cells[i].classList.remove('error');
+                    }
+                }, 5000);
             }
             
             if (isComplete && !isGameComplete) {
@@ -376,8 +387,10 @@
             const bgMusic = document.getElementById('bgMusic');
             let isPlaying = false;
 
-            // Set initial volume
+            // Set initial volume and ensure audio is paused
             bgMusic.volume = 0.5;
+            bgMusic.pause();
+            musicIcon.className = 'fas fa-volume-mute';
 
             musicToggle.addEventListener('click', function() {
                 if (!isPlaying) {

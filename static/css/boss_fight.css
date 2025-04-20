@@ -90,6 +90,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative;
 }
 
 .cell:hover {
@@ -114,8 +115,125 @@
     background-color: #1a1a1a;
 }
 
+.cell.revealed {
+    background-color: #4CAF50; /* Green background */
+    color: white;
+    animation: revealPulse 1.5s infinite;
+    box-shadow: 0 0 15px rgba(76, 175, 80, 0.8);
+    z-index: 2;
+    position: relative;
+}
+
+/* Animation for revealed cells */
+@keyframes revealPulse {
+    0% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.8); }
+    50% { box-shadow: 0 0 15px rgba(76, 175, 80, 0.8); }
+    100% { box-shadow: 0 0 5px rgba(76, 175, 80, 0.8); }
+}
+
+/* Truth reveal timer styling */
+.truth-timer {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #43A047, #66BB6A);
+    color: white;
+    padding: 10px 30px;
+    border-radius: 30px;
+    font-size: 2rem;
+    font-weight: bold;
+    z-index: 1000;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+}
+
+.truth-timer::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle, rgba(76, 175, 80, 0.8) 0%, rgba(76, 175, 80, 0) 70%);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: -1;
+    animation: timerSplash 2s infinite;
+}
+
+@keyframes timerSplash {
+    0% { width: 100%; height: 100%; opacity: 0.7; }
+    100% { width: 300%; height: 300%; opacity: 0; }
+}
+
+.truth-timer i {
+    margin-right: 10px;
+    animation: timerPulse 1s infinite;
+}
+
+@keyframes timerPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+/* Shine effect for revealed cells */
+.cell.revealed::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    transform: rotate(45deg);
+    animation: shine 2s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-150%) rotate(45deg); }
+    50% { transform: translateX(0%) rotate(45deg); }
+    100% { transform: translateX(150%) rotate(45deg); }
+}
+
 .cell.locked {
-    border: 2px solid #ffa500;
+    background-color: #1e90ff; /* Dodger blue */
+    border: 2px solid #4169e1; /* Royal blue border */
+    color: white;
+    position: relative;
+    overflow: hidden;
+    animation: lockPulse 2s infinite;
+    box-shadow: 0 0 10px #4169e1;
+    z-index: 1;
+}
+
+/* Add a lock shield effect */
+.cell.locked::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(30, 144, 255, 0.2) 0%, rgba(65, 105, 225, 0.6) 100%);
+    z-index: -1;
+}
+
+/* Animation for locked cells */
+@keyframes lockPulse {
+    0% { box-shadow: 0 0 5px #4169e1; }
+    50% { box-shadow: 0 0 15px #4169e1; }
+    100% { box-shadow: 0 0 5px #4169e1; }
 }
 
 .cell.error {
@@ -171,28 +289,14 @@
     color: #1a1a1a;
 }
 
-.ability-container {
-    display: flex;
-    align-items: center;
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #2a2a2a;
-    border-radius: 10px;
-    gap: 10px;
-}
-
 .ability {
     position: relative;
+    display: inline-block;
 }
 
 .ability-btn {
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    border: none;
     background-color: #3a3a3a;
     color: #ffa500;
-    font-size: 1.5rem;
     cursor: pointer;
     transition: all 0.3s;
 }
